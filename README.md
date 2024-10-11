@@ -27,13 +27,18 @@ pip install -r requirements
 python -m classification.src.download_pretrained_models
 ```
 
-2- Run model on a video
+2a- Run model on existing video
 
 ```
-python -m classification.src.inference --model_dir classification/output/multi_transformer --video_path preprocessing/data/trailers/downloaded/3VDfF2Mxv0g.mkv
+python -m classification.src.inference --model_dir classification/output/single_transformer --video_path preprocessing/data/trailers/downloaded/3VDfF2Mxv0g.mkv
 ```
 
-Change the arguments for `--model_dir` and `--video_path` as you'd like.
+2b- Or run model on YouTube video
+```
+python -m classification.src.inference --model_dir classification/output/single_transformer --youtube_link https://www.youtube.com/watch?v=ohF5ZO_zOYU
+```
+
+Change the arguments for `--model_dir`, `--video_path`, `--youtube_link` and  as you'd like.
 
 ## If you want to train your own model:
 

@@ -17,8 +17,8 @@ parser.add_argument('--debug', action='store_true')
 parser.add_argument('--model_dir', type=str, help='Path to the model directory',
                     default='classification/output/single_transformer')
 parser.add_argument('--video_path', type=str, help='Path to the video file',
-                    default='preprocessing/data/trailers/downloaded/3VDfF2Mxv0g.mkv',
-                    # default=None,
+                    # default='preprocessing/data/trailers/downloaded/3VDfF2Mxv0g.mkv',
+                    default=None,
                     )
 parser.add_argument('--youtube_link', type=str, required=False, help='Path to the video file',
                     # default='https://www.youtube.com/watch?v=ohF5ZO_zOYU',

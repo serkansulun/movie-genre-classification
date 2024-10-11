@@ -10,13 +10,10 @@ parser = argparse.ArgumentParser(description='Video emotion classification')
 
 parser.add_argument('--note', type=str, default='None',
                     help='Add a note')
-parser.add_argument('--model', default="single_transformer", help='Type of model')
-
-
+parser.add_argument('--model', default="single_transformer", 
+                    choices=['multi_transformer', 'single_transformer', 'mlp'], help='Type of model')
 parser.add_argument('--dataset_dir', 
-                    # default="../../../../datasets/public/MovieNet", 
-                    default="preprocessing/data",
-                    help='Directory of the dataset')
+                    default="preprocessing/data", help='Directory of the dataset')
 parser.add_argument("--features", nargs='+', default=None,
                     help="Features to use")
 parser.add_argument('--n_frames', type=int, default=None,
@@ -29,7 +26,7 @@ parser.add_argument('--clip', type=float, default=1.0,
                     help='Gradient clipping')
 parser.add_argument('--batch_size', type=int, default=32,
                     help='Batch size')
-parser.add_argument('--dropout', type=float, default=0.5,
+parser.add_argument('--dropout', type=float, default=0,
                     help='Dropout rate')
 parser.add_argument('--n_layers', default=1, type=int,
                     help='Number of hidden layers')
@@ -98,8 +95,6 @@ ASR:   61  ->  64
 
 Total: 1792 (divisible by 256)
 '''
-
-
 
 # Upper whiskers are in comments (Q3 * 1.5 (Q3 - Q1))
 # The lengths are sum of large powers are two,

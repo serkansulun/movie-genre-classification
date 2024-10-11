@@ -3,22 +3,6 @@ from pathlib import Path
 
 main_dir = Path('classification/output')
 
-urls = {
-    'mlp': {
-        'model': 'https://zenodo.org/records/13909366/files/mlp.pt?download=1',
-        'config': 'https://zenodo.org/records/13909366/files/mlp_config.pt?download=1'
-    },
-    'single_transformer': {
-        'model': 'https://zenodo.org/records/13909366/files/mlp.pt?download=1',
-        'config': 'https://zenodo.org/records/13909366/files/mlp_config.pt?download=1'
-    },
-    'multi_transformer': {
-        'model': 'https://zenodo.org/records/13909366/files/mlp.pt?download=1',
-        'config': 'https://zenodo.org/records/13909366/files/mlp_config.pt?download=1'
-    },
-}
-
-# MLP model
 for model in ('mlp', 'single_transformer', 'multi_transformer'):
     folder = main_dir / model
     folder.mkdir(exist_ok=True)

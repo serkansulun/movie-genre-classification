@@ -6,16 +6,12 @@ warnings.warn = warn
 import os
 import time
 import math
-# from datetime import datetime
 import random
 from pathlib import Path
 from copy import deepcopy
 import csv
-# import pandas as pd
 import numpy as np
 import torch
-# import matplotlib.pyplot as plt
-# from sklearn import metrics as met
 
 from classification.src.config import args
 from classification.src import classifiers
@@ -29,17 +25,12 @@ class Runner:
     def __init__(self, config=None):
 
         self.config = config
-            
-        # if torch.cuda.is_available() and self.config['memory_fraction'] < 1:
-        #     torch.cuda.set_per_process_memory_fraction(self.config['memory_fraction'])
-
         # Set the random seed manually for reproducibility.
         if self.config['seed'] > 0:
             np.random.seed(self.config['seed'])
             torch.manual_seed(self.config['seed'])
             torch.cuda.manual_seed(self.config['seed'])
             random.seed(self.config['seed'])
-
 
         self.train_step = 0
         self.n_samples_total = 0
@@ -53,13 +44,6 @@ class Runner:
 
         if not self.config['debug']:
             os.makedirs(self.config['output_dir'])
-            if self.config['test_only']:
-                file_name = f"Testing"
-            else:
-                file_name = self.config['note']
-            file_path = self.config['output_dir'] / file_name
-            with open(file_path, 'w') as f:
-                f.write('')     # Create a dummy file to specify the experiment
 
         log_path = self.config['output_dir'] / 'log.log'
         self.log = u.Logger(log_path, log_=not self.config['debug'])
@@ -86,7 +70,6 @@ class Runner:
                                                         shuffle=False, num_workers=self.config['num_workers'],
                                                         pin_memory=self.config['pin_memory'])
 
-        
         self.initialize_model()
         
         if args.pos_weight < 0:
@@ -115,7 +98,6 @@ class Runner:
             log_str += "Using float32" + '\n' 
 
         self.log(log_str)
-
 
 
     def initialize_model(self):
@@ -191,7 +173,6 @@ class Runner:
                 self.hours_total = 0
             csv_input = os.path.join(self.config['restart_dir'], 'performance.csv')
 
-
         performance_keys = [
             "epoch", "step", "hour", "lr", 
             "trn_loss", 'trn_map', 'trn_precision', 'trn_recall',  
@@ -219,15 +200,11 @@ class Runner:
         once = True
         train_loss = np.nan
         train_outputs, train_targets = [], []
-        best_result_str = ''
-        # best_loss_str = ''
 
         elapsed_data, elapsed_network = 0, 0
 
         while True:
-
             t0_data = time.time()
-
             for input_, target, video_name in self.trn_loader:
                 
                 t1_data = time.time()
@@ -258,21 +235,6 @@ class Runner:
                             dir_ = os.path.join(self.config['output_dir'], "best_map_model")
                             os.makedirs(dir_, exist_ok=True)
                             self.save_model(dir_)
-
-                            # if best_result_str != '':
-                            #     best_result_fp = Path(self.config['output_dir']) / best_result_str
-                            #     os.remove(best_result_fp)
-
-                            # best_result_str = self.save_results(val_loss, metrics, predictions, prefix='res')
-
-                    # if (val_loss < self.best_val_loss):
-                    #     self.not_improving = 0
-                    #     self.best_val_loss = val_loss
-
-                        # if not self.config['debug']:
-                        #     dir_ = os.path.join(self.config['output_dir'], "best_loss_model")
-                        #     os.makedirs(dir_, exist_ok=True)
-                        #     self.save_model(dir_)
 
                     else:
                         if self.not_improving >= self.config['patience']:
@@ -311,7 +273,6 @@ class Runner:
                 loss_val = loss.item()
                 loss /= self.config['accumulate_step']
 
-                # if not self.config['dont_train']: 
                 self.scaler.scale(loss).backward()
                 if self.train_step % self.config['accumulate_step'] == 0:
                     self.scaler.unscale_(self.optimizer)
@@ -320,12 +281,6 @@ class Runner:
                     self.scaler.step(self.optimizer)
                     self.scaler.update()
                     self.model.zero_grad()
-                
-                t1_network = time.time()
-                elapsed_network += t1_network - t0_network
-                    # if self.config['debug']:
-                    #     print('Backward pass complete')
-                    #     exit()
 
                 n_samples = len(video_name)
                 self.n_samples_total += n_samples
@@ -349,14 +304,6 @@ class Runner:
                     # now = time.strftime("%d-%m-%H:%M")
                     ms_per_batch = elapsed_interval * 1000 / self.config['log_step']
                     ms_per_sample = elapsed_interval * 1000 / n_samples_total
-
-                    # ms_per_batch_data = elapsed_data * 1000 / self.config['log_step']
-                    # ms_per_batch_network = elapsed_network * 1000 / self.config['log_step']
-
-                    # ms_per_sample_data = ms_per_batch_data / self.config['batch_size']
-                    # ms_per_sample_network = ms_per_batch_network / self.config['batch_size']
-
-                    elapsed_data, elapsed_network = 0, 0
                     
                     log_str = 'TRN: step {:>8d} | now: {} | {:>3.1f} h | {:>4.0f} ms/batch' \
                             ' | {:>4.0f} ms/sample | n_samples: {:8.0f} | loss {:7.4f}' \
@@ -364,14 +311,8 @@ class Runner:
                         self.train_step, time.strftime("%d-%m-%H:%M"), self.hours_total, 
                         ms_per_batch, ms_per_sample, n_samples, train_loss, metrics['map_macro']*100,
                         metrics['precision_macro']*100, metrics['recall_macro']*100)
-                    
-                    # log_time = 'Data: {:.1f} ms/batch - {:.2f} ms/sample - Network: {:.1f} ms/batch - {:.2f} ms/sample'.format(
-                    #     ms_per_batch_data, ms_per_batch_network, ms_per_sample_data, ms_per_sample_network
-                    # )
 
                     self.log(log_str)
-                    # if self.config['profile']:
-                    #     self.log(log_time)
 
                     csv_dict = {"epoch": self.epoch, "step": self.train_step, "hour": self.hours_total, "lr": lr, 
                         "trn_loss": train_loss, 'trn_map': metrics['map_macro'], 
@@ -385,19 +326,9 @@ class Runner:
                         self.log(u.memory())
                         self.log("-" * 100)
                     once = False
-                    # if self.config['scheduler'] != "constant" and self.train_step > 0:
-                    #     self.scheduler.step(train_loss)
                     
                     train_loss_accumulated = 0
-                    # l1_accumulated = 0
                     n_samples_total = 0
-
-                    # if not self.config['debug']:  
-                    #     dir_ = os.path.join(self.config['output_dir'], "latest_model")
-                    #     self.save_model(dir_)
-                    #     if self.train_step % 10000000 == 0:
-                    #         dir_ = os.path.join(self.config['output_dir'], str(self.train_step))
-                    #         self.save_model(dir_)
 
                     interval_start = time.time() 
 
@@ -412,47 +343,11 @@ class Runner:
                 return train_loss, self.best_result
             
 
-    # def save_results(self, loss, metrics, predictions, prefix=''):
-    #     results_str = (f'_ACC_MI_{metrics["accuracy_micro"]*100:.2f}_{prefix}_step_{self.train_step}'
-    #                         f'_TST_{loss:.2f}_F1_MI_{metrics["f1_micro"]*100:.2f}_mAP_{metrics["map"]*100:.2f}'
-    #                         f'_ACC_MA_{metrics["accuracy_macro"]*100:.2f}_F1_MA_{metrics["f1_macro"]*100:.2f}'
-    #                         )
-    #     fp = Path(self.config['output_dir']) / results_str
-    #     with open(fp, "w") as _:
-    #         pass
-        
-    #     # plot confusion matrix
-    #     plot_fp = Path(self.config['output_dir']) / 'confusion.pdf'
-    #     try:
-    #         u_cls.plot_confusion(metrics['confusion_matrix'], self.config['labels'], plot_fp)
-    #     except:
-    #         Warning('Number of labels dont match.')
-
-    #     targets = predictions['targets']
-    #     outputs = predictions['outputs']
-    #     video_names = predictions['video_names']
-
-    #     output_labels = torch.argmax(outputs, dim=-1).tolist()
-    #     output_labels = [self.config['labels'][idx] for idx in output_labels]
-    #     targets_list = targets.int().tolist()
-    #     outputs_list = outputs.tolist()
-
-    #     # Create the DataFrame
-    #     df = pd.DataFrame({
-    #         "prediction": output_labels,
-    #         "output": outputs_list,
-    #         "target": targets_list,
-    #     }, index=video_names)
-    #     df['output'] = df['output'].apply(lambda x: [round(i, 3) for i in x])
-    #     pred_fp = Path(self.config['output_dir']) / 'predictions.csv'
-    #     df.to_csv(pred_fp)
-    #     return results_str
-
     def evaluate(self, loader):
         # Turn on evaluation mode which disables dropout.
         self.model.eval()
         n_samples_total, loss_accumulated = 0, 0.
-        video_names, val_outputs, val_targets = [], [], []
+        val_outputs, val_targets = [], []
         with torch.no_grad():
             for i, (input_, target, video_name) in enumerate(loader):
                 if self.config['max_eval_step'] > 0 and i >= self.config['max_eval_step']:
@@ -460,7 +355,6 @@ class Runner:
                 loss, val_output = self.process_batch(input_, target, is_training=False)
                 val_outputs.append(deepcopy(val_output.detach().cpu()))
                 val_targets.append(deepcopy(target.detach().cpu()))
-                # video_names += list(video_name)
                 loss_val = loss.item()
                 if loss_val != float('nan'):
                     n_samples = len(video_name)
@@ -470,22 +364,16 @@ class Runner:
                     self.log(f"Val loss is NaN for {video_name}")
 
             if n_samples_total == 0:
-                # self.log("n_samples_total == 0")
                 val_loss_average = float('nan')
                 metrics = None
             else:
                 val_loss_average = loss_accumulated / n_samples_total
                 val_outputs = torch.cat(val_outputs, 0)
                 val_targets = torch.cat(val_targets, 0)
-                # val_loss_total = self.criterion(val_outputs, val_targets)
                 val_outputs = torch.nn.functional.sigmoid(val_outputs)
                 
                 metrics = u_cls.calculate_metrics(val_outputs, val_targets)
-                
-            # print(f"val_loss_average: {val_loss_average}")
-            # exit()
-            # predictions = {'video_names': video_names, 'targets': val_targets, 'outputs': val_outputs}
-            # return val_loss_average, metrics, n_samples_total, predictions
+
             return val_loss_average, metrics, n_samples_total
 
     def save_model(self, dir_):
@@ -514,8 +402,6 @@ class Runner:
             self.log('-' * 140)
             self.log('\n--- TESTING LATEST MODEL ---')
             _, metrics_latest, _ = self.evaluate(self.tst_loader)
-            # self.log('-' * 140)
-            # self.save_results(val_loss_average, metrics, predictions)
             self.log(f"mAP: {metrics_latest['map_macro']*100:.2f} | P: {metrics_latest['precision_macro']*100:.2f} | R: {metrics_latest['recall_macro']*100:.2f}")
             
             if not self.config['debug']:
@@ -528,18 +414,6 @@ class Runner:
                 self.log(f"Model loaded from {model_fp}, step {stats['step']}")
                 _, metrics_map, _ = self.evaluate(self.tst_loader)
                 self.log(f"mAP: {metrics_map['map_macro']*100:.2f} | P: {metrics_map['precision_macro']*100:.2f} | R: {metrics_map['recall_macro']*100:.2f}")
-            
-            # self.log('\n--- TESTING BEST LOSS MODEL ---')
-            # model_fp = self.config['output_dir'] / 'best_loss_model' / 'model.pt'
-            # stats_fp = self.config['output_dir'] / 'best_loss_model' / 'stats.pt'
-            # stats = torch.load(stats_fp) 
-            # self.model.load_state_dict(
-            #     torch.load(model_fp, map_location=lambda storage, loc: storage))
-            # self.log(f"Model loaded from {model_fp}, step {stats['step']}")
-            # _, metrics_loss, _ = self.evaluate(self.tst_loader)
-            # # self.log('-' * 140)
-            # # self.save_results(val_loss_average, metrics, predictions)
-            # self.log(f"mAP: {metrics_loss['map_macro']*100:.2f} | P: {metrics_loss['precision_macro']*100:.2f} | R: {metrics_loss['recall_macro']*100:.2f}")
             
             self.log('\nEnd of testing')
 

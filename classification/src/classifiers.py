@@ -1,7 +1,6 @@
 import math
 import torch
 import torch.nn as nn
-from itertools import permutations
 
 # These x are not sequences. They are just one per video
 SINGULAR_FEATURES = ('asr_sentiment', 'ocr_sentiment')
@@ -202,7 +201,6 @@ def init_model(config):
             feature_dims=config['feature_dims'],
             n_layers=config['n_layers'],
             n_heads=config['n_heads'],
-            # d_ff=config['d_ff'],
             d_output=config['n_labels'],
             dropout=config['dropout'],
             d_model=config['d_model'],
