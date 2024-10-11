@@ -1,0 +1,16 @@
+__pycache__/
+preprocessing/data/pretrained_models/*
+preprocessing/data/youtube/*
+classification/output/*
+.vscode
+*.pt
+*.pth
+*.sh
+*.png
+*.mkv
+*.mp4
+*.pkl
+
+!stats.pt
+!3VDfF2Mxv0g.mkv
+
