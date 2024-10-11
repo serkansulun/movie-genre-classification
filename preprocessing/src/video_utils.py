@@ -2,12 +2,9 @@ import os
 import subprocess
 import ffmpeg
 import re
-# import scenedetect
 import numpy as np
-# import utils as u
 import yt_dlp
 
-# DEBUG = u.parse_debug()
 
 def select_smallest_yt_video(url, min_height, temp_dir=""):
     # selects smallest format adhering to minimum height requirement
@@ -74,13 +71,11 @@ def select_smallest_yt_video(url, min_height, temp_dir=""):
 def parse_ytdlp_format(url, temp_dir="../data/temp"):
     # parse the output of ytdlp format
     
-    # loc = url.rfind("/")
     id = url.replace("https://www.youtube.com/watch?v=", "")
     info_output_path = os.path.join(temp_dir, id + ".txt")
 
     if "http" not in url:
-        # some youtube ids require quotes
-        url = f"\"{url}\""
+        url = f"\"{url}\""  # some youtube ids require quotes
 
     keys_l = ["ID", "EXT", "RESOLUTION"]    # left aligned
     keys_r = ["FILESIZE"]   # right aligned
@@ -141,37 +136,11 @@ def parse_ytdlp_format(url, temp_dir="../data/temp"):
     return videos
 
 
-# def py_scene_detect(video_path, threshold=27.0):
-#     # Create our video & scene managers, then add the detector.
-#     video_manager = scenedetect.VideoManager([video_path])
-#     scene_manager = scenedetect.SceneManager()
-#     scene_manager.add_detector(
-#         scenedetect.detectors.ContentDetector(threshold=threshold))
-
-#     # Base timestamp at frame 0 (required to obtain the scene list).
-#     base_timecode = video_manager.get_base_timecode()
-
-#     # Improve processing speed by downscaling before processing.
-#     video_manager.set_downscale_factor()
-
-#     # Start the video manager and perform the scene detection.
-#     video_manager.start()
-#     scene_manager.detect_scenes(frame_source=video_manager)
-
-#     # Each returned scene is a tuple of the (start, end) timecode.
-#     scene_list = scene_manager.get_scene_list(base_timecode)
-#     scene_list = [scene[1].get_seconds() for scene in scene_list]
-
-#     return scene_list
-
 
 def video_to_midscenes(input_path,  threshold=0.27, write=False, output_dir=None, frame_size=None):
     # Returns frames in the middle of pair of scenecuts
-    # if method == "ffmpeg":
     scenecut_times = ffmpeg_scene_detect(input_path, threshold=threshold)
     scenecut_times = [scene[0] for scene in scenecut_times]
-    # elif method == "pyscenedetect":
-    #     scenecut_times = py_scene_detect(input_path, threshold=int(round(threshold*100)))
 
     mid_scene_numbers, timestamps = scenecuts_to_median_frames(input_path, scenecut_times)
 
@@ -352,13 +321,11 @@ def download_youtube(url, target_dir='.', size=360):
         'format': 'bestaudio/best',  # Default format selection
         'format_sort': 'height',     # Sort formats by height
         'format': f'best[height<={size}]/best',  # Select the best format with height <= 360p
-        # 'format': 'best',  # Select the best format with height <= 360p
     }
     
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(url, download=True)
         # ext = info_dict.get('ext', 'mp4')  # Default to mp4 if extension not foundm
         filename = ydl.prepare_filename(info_dict)
-    
-    # filename = f'files/sample_data/youtube.{ext}'
+
     return filename

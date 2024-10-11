@@ -64,8 +64,6 @@ def download(url, target_path, is_zenodo=False):
     else:
         print(f"Failed to download file. Status code: {response.status_code}")
 
-
-
 def is_empty(x):
     if isinstance(x, np.ndarray):
         return x.size == 0
@@ -79,21 +77,11 @@ def equidistant_indices(source_length, target_length):
     assert np.array_equal(inds, np.unique(inds))
     return inds
 
-
-def is_running_locally():
-    username = getpass.getuser()
-    return username == 'inesc'
-
-
 def normalize(tensor, min_val, max_val):
     return (tensor - min_val) / (max_val - min_val)
 
 def standardize(tensor, mean_val, std_val):
     return (tensor - mean_val) / std_val
-
-def get_tensor_bytes(x):
-    return x.element_size() * x.numel()
-
 
 def detach_tensor(x):
     if isinstance(x, torch.Tensor):
@@ -146,31 +134,6 @@ class CsvWriter:
                 writer = csv.DictWriter(f, fieldnames=self.fieldnames)
                 writer.writerow(performance_dict)
 
-
-
-# # # aucprc: from sklearn.metrics import roc_auc_score
-
-# # def print_model(model):
-# #     for name, layer in model.named_modules():
-# #         print(name, layer)
-
-# def tensor_show(x):
-#     # plt.close()
-#     x = (x - x.min()) / (x.max() - x.min())
-#     x = x.squeeze()
-#     if len(x.shape) == 3:
-#         x = x.unsqueeze(0)  # add batch dimension
-#     if x.shape[1] <=3:
-#         # make it channel-last
-#         if isinstance(x, np.ndarray):
-#             x = x.transpose(0, 2, 3, 1)
-#         else:
-#             x = x.permute(0, 2, 3, 1)
-#     for im in x:
-#         plt.figure()
-#         plt.imshow(im)
-#     plt.show()
-
 def memory():
     if torch.cuda.is_available():
         pynvml.nvmlInit()
@@ -182,90 +145,8 @@ def memory():
             info.used / 1000000000,)
     else:
         ret = "CUDA not available"
-    # print(ret)
     return ret
         
-
-# # def three_crop(img, size):
-# #     if isinstance(size, int):
-# #         size = (int(size), int(size))
-# #     elif isinstance(size, (tuple, list)) and len(size) == 1:
-# #         size = (size[0], size[0])
-
-# #     if len(size) != 2:
-# #         raise ValueError("Please provide only two dimensions (h, w) for size.")
-
-# #     image_width, image_height = F.get_image_size(img)
-# #     crop_height, crop_width = size
-# #     if crop_width > image_width or crop_height > image_height:
-# #         msg = "Requested crop size {} is bigger than input size {}"
-# #         raise ValueError(msg.format(size, (image_height, image_width)))
-
-# #     tl = F.crop(img, 0, 0, crop_height, crop_width)
-# #     br = F.crop(img, 0, image_width - crop_width, crop_height, crop_width)
-
-# #     center = F.center_crop(img, [crop_height, crop_width])
-
-# #     return tl, center, br 
-
-
-# # class ThreeOrSixCrop(torch.nn.Module):
-
-# #     def __init__(self, size, hflip):
-# #         super().__init__()
-# #         self.size = size
-# #         self.hflip = hflip
-
-# #     def forward(self, img):
-# #         first_three = three_crop(img, self.size)
-# #         if self.hflip:
-# #             img = F.hflip(img)
-# #             second_three = three_crop(img, self.size)
-# #             return first_three + second_three
-# #         else:
-# #             return first_three
-
-
-
-# # def get_padding(image):
-# #     max_w = 1203 
-# #     max_h = 1479
-    
-# #     imsize = image.size
-# #     h_padding = (max_w - imsize[0]) / 2
-# #     v_padding = (max_h - imsize[1]) / 2
-# #     l_pad = h_padding if h_padding % 1 == 0 else h_padding+0.5
-# #     t_pad = v_padding if v_padding % 1 == 0 else v_padding+0.5
-# #     r_pad = h_padding if h_padding % 1 == 0 else h_padding-0.5
-# #     b_pad = v_padding if v_padding % 1 == 0 else v_padding-0.5
-    
-# #     padding = (int(l_pad), int(t_pad), int(r_pad), int(b_pad))
-    
-# #     return padding
-
-
-
-# def imshow(x):
-#     # Shows a single or batched image
-#     plt.ion()
-#     if torch.is_tensor(x):
-#         if len(x.shape) == 2 or x.shape[0] == 3:   # single grayscale or color
-#             x = x.unsqueeze(0)  # add batch dimension
-#         for i in range(x.shape[0]):     # loop batch
-#             im = x[i]
-#             if len(im.shape) == 3:  # color
-#                 im = im.permute(1, 2, 0)    # channel-last
-#             plt.figure()
-#             plt.imshow(im)
-#     else:
-#         plt.figure()
-#         plt.imshow(x)
-#     plt.show()
-
-def unique_ordered_list(x):
-    return list(dict.fromkeys(x))
-
-
 
 def run_parallel(func, my_iter, type, timer=False, mininterval=120):
     assert type in ('process', 'thread', "sequential"), 'Type can be process, thread or sequential'
@@ -319,117 +200,9 @@ def json_save(data, output_file_path):
         json.dump(data, f_out, indent=2)
 
 
-def parse_debug():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--debug", action="store_true")
-    args = parser.parse_args()
-    return args.debug
-
-def flatten_list(x):
-    return [item for sublist in x for item in sublist]
-
-def write_class_performance(labels, class_performance, overall_performance, step, output_path, csv_also=False):
-    # Ordering based on Movienet paper
-    with open(output_path, "a") as f:
-        f.write("Step: {:7d}\n".format(step))
-        header = [""] + list(class_performance.keys())
-        f.write("{:11s}  {:>6s}  {:>6s}  {:>6s}\n".format(*header))
-        f.write("-" * 35 + "\n")
-        for i, label in enumerate(labels):
-            f.write("{:11s}  {:6.2f}  {:6.2f}  {:6.2f}\n".format(
-                label,
-                100 * abs(class_performance[header[1]][i]),
-                100 * abs(class_performance[header[2]][i]),
-                100 * abs(class_performance[header[3]][i])
-            ))
-        f.write("{:11s}  {:6.2f}  {:6.2f}  {:6.2f}\n".format(
-                "MICRO AV.",
-                100 * overall_performance["precision_micro"],
-                100 * overall_performance["recall_micro"],
-                100 * overall_performance["map_micro"],
-            ))
-        f.write("{:11s}  {:6.2f}  {:6.2f}  {:6.2f}\n".format(
-                "MACRO AV.",
-                100 * overall_performance["precision_macro"],
-                100 * overall_performance["recall_macro"],
-                100 * overall_performance["map_macro"],
-            ))
-        
-
-        f.write("\n")
-    if csv_also:
-        output_path = output_path.replace(".txt", ".csv")
-        # Create table (list of dicts)
-        table = []
-        for i, label in enumerate(labels):
-            entry = {}
-            entry[""] = label
-            for key, value in class_performance.items():
-                entry[key] = "{:.2f}".format(value[i]*100)   # round(value[i], 3)
-            table.append(deepcopy(entry))
-
-        entry = {}
-        entry[""] = "MICRO AV."
-        for key in class_performance.keys():
-            if key[:2] == "P@":
-                value = overall_performance["precision_micro"]
-            if key[:2] == "R@":
-                value = overall_performance["recall_micro"]
-            if key[:2] == "AP":
-                value = overall_performance["map_micro"]
-            entry[key] = "{:.2f}".format(value*100) # round(value * 100, 2)
-        table.append(deepcopy(entry))
-
-        entry = {}
-        entry[""] = "MACRO AV."
-        for key in class_performance.keys():
-            if key[:2] == "P@":
-                value = overall_performance["precision_macro"]
-            if key[:2] == "R@":
-                value = overall_performance["recall_macro"]
-            if key[:2] == "AP":
-                value = overall_performance["map_macro"]
-            entry[key] = "{:.2f}".format(value*100)
-        table.append(deepcopy(entry))
-        write_csv(table, output_path)
-
-
-def scale(x, min_max=None):
-    # Scales data between 0 and 1
-    if min_max == None:
-        min_ = x.min()
-        max_ = x.max()
-    else:
-        min_ = min_max[0]
-        max_ = min_max[1]
-    return (x - min_) / (max_ - min_)
-
-
-def plot_boxplots(data_dict, filename):
-    # Extract keys and values from the dictionary
-    labels = list(data_dict.keys())
-    data = list(data_dict.values())
-    
-    # Create the boxplot
-    plt.figure(figsize=(10, 6))
-    plt.boxplot(data, labels=labels,)
-    
-    # Set labels and title
-    # plt.xlabel('Categories')
-    # plt.ylabel('Values')
-    # plt.title('Boxplots of Each Array')
-    plt.grid()
-    
-    # Save the figure to the provided filename
-    plt.savefig(filename)
-    plt.close()
-
-
 def find_common_nonzero_argmax(boxes1, boxes2):
     # Get a sample frame where there are prefferably faces and text
-
     # Find number of boxes per frame
-
     n_ocr = np.array([len(frame_boxes) if frame_boxes != None else 0 for frame_boxes in boxes1], dtype=float)
     n_face = np.array([len(frame_boxes) if frame_boxes != None else 0 for frame_boxes in boxes2], dtype=float)
 
@@ -462,9 +235,7 @@ def convert_to_points(coords):
     return [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]
 
 
-
 def draw_boxes_on_image(image, shapes, labels=None, title=None):
-    # plt.ion()
     # To visualize the face emotion and OCR results
     if labels == None:
         labels = [None] * len(shapes)
@@ -492,7 +263,6 @@ def draw_boxes_on_image(image, shapes, labels=None, title=None):
                                    path_effects.Normal()])
             
         # Create a polygon patch for each shape with a yellow outline and black stroke
-        # shape = np.array(shape) + 0.2 * (np.array(shape) - np.mean(shape, axis=0))
         polygon = patches.Polygon(shape, closed=True, edgecolor=box_color, linewidth=1, fill=None)
         polygon.set_path_effects([path_effects.Stroke(linewidth=2, foreground='black'),
                                   path_effects.Normal()])

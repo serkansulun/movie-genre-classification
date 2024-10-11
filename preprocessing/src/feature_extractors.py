@@ -15,9 +15,6 @@ from preprocessing.src.face_detector.detect_face import FaceDetector
 from paddleocr import PaddleOCR
 import pkg_resources
 from symspellpy.symspellpy import SymSpell
-import requests
-from tqdm import tqdm
-import subprocess
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -149,7 +146,6 @@ class FaceEmotionClassifier(torch.nn.Module):
         plt.savefig('face_emotion.png')
 
 
-
 class FastASR(torch.nn.Module):
     # Automatic speech recognition, plus translator into English
     # Source: https://huggingface.co/openai/whisper-tiny
@@ -190,7 +186,6 @@ class FastASR(torch.nn.Module):
             device=DEVICE,
         )
 
-
     def get_device(self):
         return self.pipe.model.device.type
     
@@ -210,9 +205,7 @@ class FastASR(torch.nn.Module):
 
         # Use translation by default. The model works at the same speed.
         # No problem if the source is in English.
-        # print('Running ASR...', end=' ', flush=True)
         output = self.pipe(input_audio, generate_kwargs={"task": "translate"})
-        # print('Done.', flush=True)
         return output
 
 
@@ -222,7 +215,6 @@ class ASRSentiment(torch.nn.Module):
         super(ASRSentiment, self).__init__()
         self.asr_model = FastASR(use_tiny_model=tiny_asr)
         self.sentiment_model = SentimentClassifier()
-        # self.to_device('cpu')
 
     def to_device(self, device):
         if device == 'cuda' and not torch.cuda.is_available():
@@ -364,7 +356,6 @@ class CLIPRunner(torch.nn.Module):
         return video_output
     
 
-
 class BEATSRunner(torch.nn.Module):
     # Audio classifier
     # Source: https://github.com/microsoft/unilm/tree/master/beats
@@ -392,7 +383,6 @@ class BEATSRunner(torch.nn.Module):
         if not self.predict:
             self.BEATs_model.predictor = None
 
-            
     def __call__(self, input_):
         with torch.no_grad():
             padding_mask = torch.zeros(input_.shape).bool().to(DEVICE) 
@@ -408,7 +398,6 @@ class BEATSRunner(torch.nn.Module):
         else:
             self.to(device)
 
-        
     def process_video(self, input_tensor=None, video_path=None, n_frames=None, batch_size=8, num_workers=2, fps=None, overlap=0.5, sr=None, **kwargs):
         video_output = {'features': [], 'predictions': []}
         if input_tensor is None and video_path == None:
@@ -457,7 +446,6 @@ class BEATSRunner(torch.nn.Module):
 
         return video_output
     
-
 
 class AudioDataset(Dataset):
     # Loads audio in chunks
@@ -602,7 +590,6 @@ class TextLanguageClassifier(torch.nn.Module):
             return output
 
 
-
 class OCRRunner:
     # Wrapper for optical Character Recognition (OCR) model to process full videos.
     # Source: https://github.com/PaddlePaddle/PaddleOCR
@@ -683,8 +670,6 @@ class OCRPipeline(torch.nn.Module):
 
 
     def process_video(self, input_tensor=None, video_path=None, fps=None, **kwargs):
-        # if self.verbose:
-        #     print('\n\n', video_path)
         ocr_texts, ocr_outputs = self.ocr_model.process_video(input_tensor=input_tensor, video_path=video_path)
         output = {}
         output['ocr_raw'] = ocr_texts
@@ -773,10 +758,9 @@ class ClipCaptionModel(torch.nn.Module):
         return out
 
 
-
 def generate_caption_beam(model, tokenizer, beam_size: int = 5, prompt=None, embed=None,
                   entry_length=67, temperature=1., stop_token: str = '.'):
-
+    # Used in CLIPCap (caption generator)
     model.eval()
     stop_token_index = tokenizer.encode(stop_token)[0]
     tokens = None

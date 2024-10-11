@@ -1,6 +1,4 @@
-import random
 import torch
-import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import metrics
@@ -8,7 +6,6 @@ from sklearn import metrics
 import utils as u
 
 plt.ioff()
-
 
 def calculate_metrics(predictions, targets, threshold = 0.5):
     
@@ -18,8 +15,6 @@ def calculate_metrics(predictions, targets, threshold = 0.5):
     pred_labels = (predictions >= threshold).astype(int)
     true_labels = targets
     # # Convert one-hot encoded targets to class labels
-    # true_labels = np.argmax(targets, axis=1)
-    # pred_labels = np.argmax(predictions, axis=1)
 
     # Replace NaNs with zeros
     predictions = np.nan_to_num(predictions)
@@ -36,26 +31,10 @@ def calculate_metrics(predictions, targets, threshold = 0.5):
     f1_score_micro = metrics.f1_score(true_labels, pred_labels, average='micro')
     map_micro = metrics.average_precision_score(targets, predictions, average='micro')
     
-    # Mean Average Precision (mAP)
-    # Calculate average precision for each class
-
-    
-
-    # average_precision_per_class = []
-    # for i in range(targets.shape[1]):
-    #     average_precision_per_class.append(metrics.average_precision_score(targets[:, i], predictions[:, i]))
-    # mean_average_precision = np.mean(average_precision_per_class)
-
-    # mean_average_precision2 = metrics.average_precision_score(targets, predictions, average='macro')
-    
-    # Confusion Matrix
-    # confusion_matrix = metrics.confusion_matrix(true_labels, pred_labels, normalize='true')
-    
     return {
             'precision_macro': precision_macro, 'recall_macro': recall_macro, 'f1_macro': f1_score_macro,
             'precision_micro': precision_micro, 'recall_micro': recall_micro, 'f1_micro': f1_score_micro,
             'map_macro': map_macro, 'map_micro': map_micro, 
-            # 'confusion_matrix': confusion_matrix
             }
 
 
